@@ -14,7 +14,8 @@ else:
     base_path = os.path.dirname(os.path.abspath(__file__))
     src_path = os.path.join(base_path, 'src')
 
-sys.path.insert(0, src_path)
+# src/ 目录在 base_path/src/ 下
+sys.path.insert(0, os.path.join(base_path, 'src'))
 
 import webview
 

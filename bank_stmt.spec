@@ -10,13 +10,13 @@ spec_path = os.getcwd()
 gui_assets = [
     (os.path.join(src_path, 'gui', 'assets'), os.path.join('gui', 'assets')),
 ]
-src_files = [(src_path, 'src')]
+
 
 a = Analysis(
     [os.path.join(src_path, 'main.py')],
     pathex=[spec_path],
     binaries=[],
-    datas=gui_assets + src_files,
+    datas=gui_assets + [(src_path, 'src')],
     hiddenimports=[
         'webview',
         'pymupdf',
