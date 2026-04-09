@@ -24,11 +24,12 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --noconfirm bank_stmt.spec
+          pyinstaller --onedir --noconfirm bank_stmt_onedir.spec
 
       - name: Create zip archive
         run: |
           Compress-Archive -Path "dist/银行流水核对系统/*" -DestinationPath "银行流水核对系统_完整版.zip" -Force
+          Compress-Archive -Path "dist/银行流水核对系统" -DestinationPath "bank_stmt_onedir.zip" -Force
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

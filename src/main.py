@@ -27,8 +27,8 @@ def main():
 
     # 获取 HTML 资源路径
     if getattr(sys, 'frozen', False):
-        # 打包模式（onefile exe）：HTML 在 gui/assets/index.html
-        html_path = os.path.join(base_path, 'gui', 'assets', 'index.html')
+        # 打包模式（onedir exe）：HTML 在 _internal/gui/assets/index.html
+        html_path = os.path.join(base_path, '_internal', 'gui', 'assets', 'index.html')
     else:
         # 开发模式
         html_path = os.path.join(src_path, 'gui', 'assets', 'index.html')
