@@ -6,9 +6,10 @@ import os
 
 # 将 src 目录加入 Python 路径
 if getattr(sys, 'frozen', False):
-    # PyInstaller 打包模式
+    # PyInstaller onefile 打包模式
     base_path = sys._MEIPASS
-    src_path = os.path.join(base_path, 'src')
+    # onefile exe 解压后，源码在 base_path 根目录（无 src/ 子目录）
+    src_path = base_path
 else:
     base_path = os.path.dirname(os.path.abspath(__file__))
     src_path = os.path.join(base_path, 'src')
@@ -25,8 +26,8 @@ def main():
 
     # 获取 HTML 资源路径
     if getattr(sys, 'frozen', False):
-        # 打包模式：HTML 在 src/gui/assets/index.html
-        html_path = os.path.join(src_path, 'gui', 'assets', 'index.html')
+        # 打包模式（onefile exe）：HTML 在 gui/assets/index.html
+        html_path = os.path.join(base_path, 'gui', 'assets', 'index.html')
     else:
         # 开发模式
         html_path = os.path.join(src_path, 'gui', 'assets', 'index.html')
