@@ -24,15 +24,15 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          echo "CWD: $(Get-Location)"
-          echo "GITHUB_WORKSPACE: $env:GITHUB_WORKSPACE"
+          pushd $env:GITHUB_WORKSPACE
           pyinstaller --noconfirm bank_stmt_onedir.spec
-        working-directory: ${{ github.workspace }}
+          popd
 
       - name: Create zip archive
         run: |
+          pushd $env:GITHUB_WORKSPACE
           Compress-Archive -Path "dist/银行流水核对系统/*" -DestinationPath "bank_stmt_onedir.zip" -Force
-        working-directory: ${{ github.workspace }}
+          popd
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
