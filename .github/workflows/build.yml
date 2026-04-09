@@ -8,9 +8,6 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: ${{ github.workspace }}
 
     steps:
       - name: Checkout
@@ -27,10 +24,14 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
+          $repo = $env:GITHUB_WORKSPACE
+          Set-Location $repo
           pyinstaller --noconfirm bank_stmt_onedir.spec
 
       - name: Create zip archive
         run: |
+          $repo = $env:GITHUB_WORKSPACE
+          Set-Location $repo
           Compress-Archive -Path "dist/银行流水核对系统/*" -DestinationPath "bank_stmt_onedir.zip" -Force
 
       - name: Upload artifact
