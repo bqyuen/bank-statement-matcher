@@ -6,16 +6,17 @@ import os
 
 # 将 src 目录加入 Python 路径
 if getattr(sys, 'frozen', False):
-    # PyInstaller onefile 打包模式
-    base_path = sys._MEIPASS
-    # onefile exe 解压后，源码在 base_path 根目录（无 src/ 子目录）
-    src_path = base_path
+    # PyInstaller onedir 打包模式
+    exe_dir = os.path.dirname(os.path.abspath(sys.executable))
+    internal_dir = os.path.join(exe_dir, '_internal')
+    base_path = exe_dir
+    # onedir: pylib/base_library 在 _internal/ 下
+    src_path = internal_dir
 else:
     base_path = os.path.dirname(os.path.abspath(__file__))
     src_path = os.path.join(base_path, 'src')
 
-# src/ 目录在 base_path/src/ 下
-sys.path.insert(0, os.path.join(base_path, 'src'))
+sys.path.insert(0, src_path)
 
 import webview
 
@@ -27,8 +28,10 @@ def main():
 
     # 获取 HTML 资源路径
     if getattr(sys, 'frozen', False):
-        # 打包模式（onedir exe）：HTML 在 _internal/gui/assets/index.html
-        html_path = os.path.join(base_path, '_internal', 'gui', 'assets', 'index.html')
+        # onedir 模式：exe 和 _internal 同目录，HTML 在 _internal/gui/assets/index.html
+        # 用 sys.executable 获取 exe 所在目录（不是 _MEIPASS 临时目录）
+        exe_dir = os.path.dirname(os.path.abspath(sys.executable))
+        html_path = os.path.join(exe_dir, '_internal', 'gui', 'assets', 'index.html')
     else:
         # 开发模式
         html_path = os.path.join(src_path, 'gui', 'assets', 'index.html')
