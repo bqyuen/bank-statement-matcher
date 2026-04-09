@@ -1,8 +1,9 @@
 # -*- mode: python ; coding: utf-8 -*-
-import sys, os
+import os
+
 block_cipher = None
 
-spec_dir = os.path.dirname(os.path.abspath(SPECFILE))
+spec_dir = os.getcwd()
 src_dir = os.path.join(spec_dir, 'src')
 
 gui_assets = [
