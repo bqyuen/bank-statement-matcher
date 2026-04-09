@@ -20,20 +20,16 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r requirements.txt
-        shell: pwsh
 
       - name: Build with PyInstaller
         run: |
           Set-Location -Path $env:GITHUB_WORKSPACE
-          Write-Host "CWD: $(Get-Location)"
           pyinstaller --noconfirm bank_stmt_onedir.spec
-        shell: pwsh
 
       - name: Create zip archive
         run: |
           Set-Location -Path $env:GITHUB_WORKSPACE
           Compress-Archive -Path "dist/银行流水核对系统/*" -DestinationPath "bank_stmt_onedir.zip" -Force
-        shell: pwsh
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
