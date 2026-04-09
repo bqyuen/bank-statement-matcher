@@ -180,6 +180,8 @@ def _detect_bank_from_pdf(file_path: str) -> str:
                     '综合柜员系统流水账', '中国建设银行'
                 ]):
                     return 'ccb'
+                if '中交财务有限公司' in text:
+                    return 'ccfc'
 
                 # 有较多可提取文本通常不是纯扫描件
                 if len(text.strip()) > 50:
