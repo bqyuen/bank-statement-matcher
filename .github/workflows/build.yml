@@ -19,20 +19,21 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
+        shell: pwsh
 
       - name: Build with PyInstaller
         run: |
-          pushd $env:GITHUB_WORKSPACE
+          Set-Location -Path $env:GITHUB_WORKSPACE
+          Write-Host "CWD: $(Get-Location)"
           pyinstaller --noconfirm bank_stmt_onedir.spec
-          popd
+        shell: pwsh
 
       - name: Create zip archive
         run: |
-          pushd $env:GITHUB_WORKSPACE
+          Set-Location -Path $env:GITHUB_WORKSPACE
           Compress-Archive -Path "dist/银行流水核对系统/*" -DestinationPath "bank_stmt_onedir.zip" -Force
-          popd
+        shell: pwsh
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
