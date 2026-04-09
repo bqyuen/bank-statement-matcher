@@ -1,9 +1,10 @@
 # -*- mode: python ; coding: utf-8 -*-
-import os
+import os, sys
 
 block_cipher = None
 
-spec_dir = os.getcwd()
+# Get spec file directory using PyInstaller's built-in SPEC variable
+spec_dir = os.path.dirname(os.path.abspath(SPEC))
 src_dir = os.path.join(spec_dir, 'src')
 
 gui_assets = [

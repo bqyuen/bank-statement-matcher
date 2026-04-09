@@ -8,7 +8,10 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,12 +31,11 @@ jobs:
 
       - name: Create zip archive
         run: |
-          Compress-Archive -Path "dist/银行流水核对系统/*" -DestinationPath "银行流水核对系统_完整版.zip" -Force
-          Compress-Archive -Path "dist/银行流水核对系统" -DestinationPath "bank_stmt_onedir.zip" -Force
+          Compress-Archive -Path "dist/银行流水核对系统/*" -DestinationPath "bank_stmt_onedir.zip" -Force
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: bank-statement-exe
-          path: 银行流水核对系统_完整版.zip
-          retention-days: 3
+          path: bank_stmt_onedir.zip
+          retention-days: 1
