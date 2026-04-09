@@ -1,0 +1,38 @@
+name: Build Windows Exe
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Build with PyInstaller
+        run: |
+          pyinstaller --onedir --noconfirm specs/bank_stmt.spec
+
+      - name: Create zip archive
+        run: |
+          Compress-Archive -Path "dist/银行流水核对系统/*" -DestinationPath "银行流水核对系统_完整版.zip" -Force
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bank-statement-exe
+          path: 银行流水核对系统_完整版.zip
+          retention-days: 3

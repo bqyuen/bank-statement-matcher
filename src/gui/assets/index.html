@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>银行流水核对系统</title>
+</head>
+<body>
+<div id="app" style="width:100%;display:none;padding:20px;font-family:'Microsoft YaHei',Arial,sans-serif">
+
+    <h2 style="text-align:center;color:#409EFF;margin-bottom:20px">🏦 银行流水与三栏账自动核对系统</h2>
+
+    <el-steps :active="active" finish-status="success" style="margin-bottom:30px">
+        <el-step title="选择文件"></el-step>
+        <el-step title="核对匹配"></el-step>
+        <el-step title="生成报告"></el-step>
+    </el-steps>
+
+    <!-- Step 1: Select Files -->
+    <el-card v-show="active===0">
+        <h4 style="margin-top:0">📂 第一步：选择银行流水和三栏账文件</h4>
+
+        <el-form label-width="160px" size="medium">
+            <el-form-item label="银行流水文件:">
+                <el-input v-model="form.bankPath" readonly placeholder="请选择银行流水文件(OFD/PDF/Excel/CSV)">
+                    <template slot="append">
+                        <el-button icon="el-icon-search" @click="selectBankFile">浏览</el-button>
+                    </template>
+                </el-input>
+                <div v-if="form.bankCount" style="color:green;margin-top:5px">✅ 读取成功，共 {{form.bankCount}} 条记录</div>
+                <div v-if="form.bankError" style="color:red;margin-top:5px">❌ {{form.bankError}}</div>
+            </el-form-item>
+
+            <el-form-item label="三栏账文件:">
+                <el-input v-model="form.ledgerPath" readonly placeholder="请选择三栏账(Excel)">
+                    <template slot="append">
+                        <el-button icon="el-icon-search" @click="selectLedgerFile">浏览</el-button>
+                    </template>
+                </el-input>
+                <div v-if="form.ledgerCount" style="color:green;margin-top:5px">✅ 读取成功，共 {{form.ledgerCount}} 条记录</div>
+                <div v-if="form.ledgerError" style="color:red;margin-top:5px">❌ {{form.ledgerError}}</div>
+            </el-form-item>
+
+            <el-divider></el-divider>
+
+            <h4 style="margin-top:0">⚙️ 匹配参数（可选）</h4>
+            <el-row :gutter="20">
+                <el-col :span="12">
+                    <el-form-item label="近端日期容差(天):">
+                        <el-input-number v-model="form.toleranceNear" :min="0" :max="30" controls-position="right"></el-input-number>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="远端日期容差(天):">
+                        <el-input-number v-model="form.toleranceFar" :min="0" :max="90" controls-position="right"></el-input-number>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+
+            <el-form-item label-width="100%" style="text-align:center;margin-top:20px">
+                <el-button type="primary" size="medium" :loading="form.reading"
+                           @click="goToMatching"
+                           :disabled="!form.bankCount || !form.ledgerCount">
+                    开始核对匹配 →
+                </el-button>
+            </el-form-item>
+        </el-form>
+    </el-card>
+
+    <!-- Step 2: Matching -->
+    <el-card v-show="active===1">
+        <h4 style="margin-top:0">🔍 第二步：核对结果</h4>
+
+        <el-row :gutter="20" style="margin-bottom:20px">
+            <el-col :span="8">
+                <el-statistic title="已匹配记录" :value="form.matchedCount" style="color:#67C23A"></el-statistic>
+            </el-col>
+            <el-col :span="8">
+                <el-statistic title="银行有账本无" :value="form.bankOnlyCount" style="color:#E6A23C"></el-statistic>
+            </el-col>
+            <el-col :span="8">
+                <el-statistic title="账本有银行无" :value="form.ledgerOnlyCount" style="color:#F56C6C"></el-statistic>
+            </el-col>
+        </el-row>
+
+        <el-alert v-if="form.matchingError" type="error" :title="form.matchingError" show-icon style="margin-bottom:15px"></el-alert>
+
+        <div style="display:flex;justify-content:center;gap:12px;margin:20px 0">
+            <el-button @click="backToFileSelect">← 重新选择文件</el-button>
+            <el-button type="primary" :loading="form.generating"
+                       @click="goToReport"
+                       :disabled="!!form.matchingError">
+                生成Excel报告 →
+            </el-button>
+        </div>
+    </el-card>
+
+    <!-- Step 3: Generate Report -->
+    <el-card v-show="active===2">
+        <h4 style="margin-top:0">📊 第三步：生成核对报告</h4>
+
+        <el-form label-width="160px" size="medium">
+            <el-row :gutter="20">
+                <el-col :span="12">
+                    <el-form-item label="银行对账单余额:">
+                        <el-input v-model.number="form.bankBalance" placeholder="输入金额"></el-input>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="企业日记账余额:">
+                        <el-input v-model.number="form.ledgerBalance" placeholder="输入金额"></el-input>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+            <el-row :gutter="20">
+                <el-col :span="12">
+                    <el-form-item label="编制单位:">
+                        <el-input v-model="form.companyName" placeholder="如：三航局六公司"></el-input>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="账户号:">
+                        <el-input v-model="form.accountNo" placeholder="银行账号"></el-input>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+            <el-form-item label="截止日期:">
+                <el-input v-model="form.statementDate" placeholder="如：2024年12月31日"></el-input>
+            </el-form-item>
+
+            <div style="display:flex;justify-content:center;gap:12px;margin-top:20px">
+                <el-button @click="active=1">← 返回</el-button>
+                <el-button type="success" :loading="form.generating" icon="el-icon-download" @click="generateExcel">
+                    生成Excel报告
+                </el-button>
+            </div>
+
+            <div v-if="form.reportPath" style="text-align:center;margin-top:15px">
+                <el-alert type="success" :title="'✅ 报告已生成: ' + form.reportPath" show-icon :closable="false"></el-alert>
+                <el-button type="primary" plain style="margin-top:10px" icon="el-icon-view" @click="openReport">
+                    打开报告文件
+                </el-button>
+            </div>
+            <div v-if="form.reportError" style="color:red;margin-top:10px;text-align:center">
+                ❌ {{form.reportError}}
+            </div>
+        </el-form>
+    </el-card>
+
+</div>
+
+<link rel="stylesheet" type="text/css" href="css/element-ui.css">
+<script src="js/vue.js" type="text/javascript"></script>
+<script src="js/element-ui.js"></script>
+<script>
+let pyApi;
+window.addEventListener('pywebviewready', function () {
+    pyApi = window.pywebview.api;
+});
+
+const app = new Vue({
+    el: '#app',
+    data() {
+        return {
+            active: 0,
+            form: {
+                bankPath: '',
+                bankCount: 0,
+                bankError: '',
+                ledgerPath: '',
+                ledgerCount: 0,
+                ledgerError: '',
+                toleranceNear: 3,
+                toleranceFar: 7,
+                matchedCount: 0,
+                bankOnlyCount: 0,
+                ledgerOnlyCount: 0,
+                matchingError: '',
+                bankBalance: 0,
+                ledgerBalance: 0,
+                companyName: '',
+                accountNo: '',
+                statementDate: '',
+                reportPath: '',
+                reportError: '',
+                reading: false,
+                generating: false,
+            }
+        }
+    },
+    created() {
+        document.getElementById('app').style.display = 'block';
+    },
+    methods: {
+        async selectBankFile() {
+            try {
+                const path = await pyApi.selectFile();
+                if (!path) return;
+                this.form.bankPath = path;
+                this.form.bankCount = 0;
+                this.form.bankError = '';
+                this.form.reading = true;
+                const res = await pyApi.readBankFile(path);
+                this.form.reading = false;
+                if (res.error) {
+                    this.form.bankError = res.error;
+                } else {
+                    this.form.bankCount = res.count;
+                }
+            } catch(e) {
+                this.form.reading = false;
+                this.form.bankError = String(e);
+            }
+        },
+        async selectLedgerFile() {
+            try {
+                const path = await pyApi.selectFile();
+                if (!path) return;
+                this.form.ledgerPath = path;
+                this.form.ledgerCount = 0;
+                this.form.ledgerError = '';
+                this.form.reading = true;
+                const res = await pyApi.readLedgerFile(path);
+                this.form.reading = false;
+                if (res.error) {
+                    this.form.ledgerError = res.error;
+                } else {
+                    this.form.ledgerCount = res.count;
+                }
+            } catch(e) {
+                this.form.reading = false;
+                this.form.ledgerError = String(e);
+            }
+        },
+        async goToMatching() {
+            try {
+                this.form.reading = true;
+                this.form.matchingError = '';
+                const res = await pyApi.runMatching(this.form.toleranceNear, this.form.toleranceFar);
+                this.form.reading = false;
+                if (res.error) {
+                    this.form.matchingError = res.error;
+                } else {
+                    this.form.matchedCount = res.matched;
+                    this.form.bankOnlyCount = res.bank_only;
+                    this.form.ledgerOnlyCount = res.ledger_only;
+                    this.active = 1;
+                }
+            } catch(e) {
+                this.form.reading = false;
+                this.form.matchingError = String(e);
+            }
+        },
+        backToFileSelect() {
+            this.active = 0;
+            this.form.matchingError = '';
+        },
+        goToReport() {
+            this.form.reportPath = '';
+            this.form.reportError = '';
+            this.active = 2;
+        },
+        async generateExcel() {
+            try {
+                this.form.generating = true;
+                this.form.reportPath = '';
+                this.form.reportError = '';
+                const res = await pyApi.genExcelReport(
+                    this.form.bankBalance,
+                    this.form.ledgerBalance,
+                    this.form.companyName,
+                    this.form.accountNo,
+                    this.form.statementDate
+                );
+                this.form.generating = false;
+                if (res.error) {
+                    this.form.reportError = res.error;
+                } else {
+                    this.form.reportPath = res.path;
+                }
+            } catch(e) {
+                this.form.generating = false;
+                this.form.reportError = String(e);
+            }
+        },
+        async openReport() {
+            if (this.form.reportPath) {
+                await pyApi.openFile(this.form.reportPath);
+            }
+        }
+    }
+});
+</script>
+<style>
+body { margin: 0; padding: 0; background: #f5f5f5; }
+</style>
+</body>
+</html>
