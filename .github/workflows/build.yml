@@ -24,7 +24,7 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --onedir --noconfirm bank_stmt_onedir.spec
+          pyinstaller --noconfirm bank_stmt_onedir.spec
 
       - name: Create zip archive
         run: |
