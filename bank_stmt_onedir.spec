@@ -15,7 +15,7 @@ a = Analysis(
     binaries=[],
     datas=gui_assets,
     hiddenimports=[
-        'webview', 'pymupdf', 'rapidfuzz', 'openpyxl',
+        'pywebview', 'pymupdf', 'rapidfuzz', 'openpyxl',
         'tkinter', 'xml.etree.ElementTree', 'PIL', 'rapidfuzz.distance',
     ],
     hookspath=[], runtime_hooks=[], excludes=[],

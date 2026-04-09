@@ -1,12 +1,12 @@
 """
 银行流水核对系统 - 主入口
-Onefile mode: sys._MEIPASS is temp extraction root, exe at sys.executable
+Onefile mode: sys._MEIPASS is the temp extraction root, exe is at sys.executable
 """
 import sys, os
 
 if getattr(sys, 'frozen', False):
     base_path = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
-    src_path = base_path  # onefile: src/ extracted to temp root
+    src_path = base_path  # onefile: src/ is at extraction root
 else:
     base_path = os.path.dirname(os.path.abspath(__file__))
     src_path = os.path.join(base_path, 'src')
